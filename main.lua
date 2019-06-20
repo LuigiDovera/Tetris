@@ -1,12 +1,29 @@
 
 blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}}
 
-matriz = {}
-for i=1, 11 do
-	matriz[i] = {}
-	for j=1, 7 do
-		matriz[i][j] = nil
+
+-- Inicializando a matriz principal que armazenará a informação dos blocos
+	matriz = {}
+	for i=1, 11 do
+		matriz[i] = {}
+		for j=1, 7 do
+			matriz[i][j] = nil
+		end
 	end
+
+--Bloco do jogador
+	--O objeto guardará a posição atual do bloco 'jogável' do player
+	--A posição se dá pelos indices do bloco na matriz
+	playerB = {mX = nil, mY = nil}
+	
+--timers
+	--timer para a movimentação vertical do blocos
+		fallTimerMax = 1
+		fallTimer = fallTimerMax
+
+
+function updateMatriz()
+
 end
 
 function love.load(arg)
@@ -21,9 +38,18 @@ function love.load(arg)
 end
 
 function love.update(dt)
-	matriz[10][1] = blocks.img.t
-	matriz[5][5] = blocks.img.t
+	--[[
+	fallTimer = fallTimer - dt
+	if fallTimer < 0 then
+		matriz[playerB.mY + 1][playerB.mX] = matriz[playerB.mY][playerB.mX]
+		matriz[playerB.mY][playerB.mX] = nil
+		playerB.mY = playerB.mY + 1
+	end
+	]]
 
+	if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
+		player.mX = player.mX - 1
+	end
 end
 
 function love.draw(dt)
