@@ -103,7 +103,7 @@ function love.update(dt)
 		matriz[player.mY][player.mX] = blockRandomizer()
 	end
 
-	for i=1, 11 do
+	--[[for i=1, 11 do
 		for j=1, 7 do
 			if matriz[i][j] ~= nil then fullLine = true
 			else fullLine = false
@@ -112,8 +112,9 @@ function love.update(dt)
 			if not fullLine then break end
 		end
 		if fullLine then
-			e
+		end
 	end
+	]]
 
 
 
