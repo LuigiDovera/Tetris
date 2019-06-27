@@ -14,7 +14,7 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}}
 --Bloco do jogador
 	--O objeto guardará a posição atual do bloco 'jogável' do player
 	--A posição se dá pelos indices do bloco na matriz
-	player = {mX = floor(matriz.largura/2), mY = 1, shape = nil}
+	player = {mX = math.floor(matriz.largura/2), mY = 1, shape = nil}
 	
 --timers
 	--timer para a movimentação vertical do blocos
@@ -27,8 +27,13 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}}
 function updateMatriz()
 end
 
-function topoColuna()
-	
+function topBlock()
+	-- Percorre toda a coluna em que o jogador se encontra. 
+	-- Quando encontrar um bloco, retorna a 'altura' do bloco 
+	for i=1, matriz.altura do
+		if matriz[i][player.mX] ~= nil and i~=player.mX then return i end
+	end
+	return matriz.altura + 1
 end
 
 function blockRandomizer()
@@ -43,16 +48,6 @@ function blockRandomizer()
 	if n == 7 then return blocks.img.t end
 end	
 
-function love.conf(t)
-	t.title = "Tetris" -- The title of the window the game is in (string)
-	t.version = "0.9.1"         -- The LÖVE version this game was made for (string)
-	t.window.width = matriz.largura*50     --[valor base * largura em blocos]
-	t.window.height = matriz.altura*50		--[valor base * altura em blocos]
-
-	-- For Windows debugging
-	t.console = true
-end
-
 function love.load(arg)
 	blocks.img.i = love.graphics.newImage("assets/img/i.png")
 	blocks.img.l = love.graphics.newImage("assets/img/l.png")	
@@ -62,7 +57,8 @@ function love.load(arg)
 	blocks.img.s = love.graphics.newImage("assets/img/s.png")
 	blocks.img.t = love.graphics.newImage("assets/img/t.png")
 
-	matriz[player.mY][player.mX] = blocks.img.t
+	-- Inicializando o jogador
+	matriz[player.mY][player.mX] = blockRandomizer()
 
 end
 
@@ -116,12 +112,23 @@ function love.update(dt)
 		--a posição do maior bloco daquela coluna e 
 		--põe o bloco atual no topo do retornado
 
+		topo = topBlock()
+		
+		matriz[player.mY][player.mX],matriz[topo-1][player.mX] 
+			= matriz[topo-1][player.mX],matriz[player.mY][player.mX]
+
+		player.mY = topo - 1 
+
+		actionTimer = actionTimerMax
 
 
 	end 
 
+
+	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupado
+	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
 	if player.mY == matriz.altura or matriz[player.mY + 1][player.mX] ~= nil then
-		player.mX = floor(matriz.largura/2) --meio da matriz
+		player.mX = math.floor(matriz.largura/2) --meio da matriz
 		player.mY = 1
 		matriz[player.mY][player.mX] = blockRandomizer()
 	end
@@ -136,10 +143,12 @@ function love.update(dt)
 			if not fullLine then break end
 		end
 
+		-- Se a linha estiver completa, então um for externo irá realizar a ação da 'gravidade' 
+		-- nos blocos superiores
 		if fullLine then
 			for j=1, matriz.largura do
 				matriz[i][j] = nil
-				caindo = true
+				caindo = true 
 			end 
 		end
 	end
@@ -150,7 +159,9 @@ function love.update(dt)
 				matriz[i][j], matriz[i-1][j] = matriz[i][j], matriz[i-1][j]
 			end
 		end 
+		caindo = false
 	end
+	-- fim da atualização de linhas
 	
 
 

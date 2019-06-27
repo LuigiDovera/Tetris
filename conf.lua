@@ -5,5 +5,5 @@ function love.conf(t)
 	t.window.height = 50*11		--[valor base * altura em blocos]
 
 	-- For Windows debugging
-	t.console = true
+	t.console = false
 end

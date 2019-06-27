@@ -1,3 +1,3 @@
 @echo off
 
-"C:\Users\italo.luigi\Desktop\luigi\love-11.2.0-win64\love.exe" "%cd%"
+"C:\Users\PF\Desktop\luigi\love-0.9.1-win64\love.exe" "%cd%"
