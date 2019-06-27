@@ -31,9 +31,11 @@ function topBlock()
 	-- Percorre toda a coluna em que o jogador se encontra. 
 	-- Quando encontrar um bloco, retorna a 'altura' do bloco 
 	for i=1, matriz.altura do
-		if matriz[i][player.mX] ~= nil and i~=player.mX then return i end
+		if matriz[i][player.mX] ~= nil and i ~= player.mY then
+			return i - 1 
+		end
 	end
-	return matriz.altura + 1
+	return matriz.altura
 end
 
 function blockRandomizer()
@@ -64,8 +66,8 @@ end
 
 function love.update(dt)
 	-- update dos timers
-	fallTimer = fallTimer - dt
-	actionTimer = actionTimer - dt
+	fallTimer = fallTimer - (1*dt)
+	actionTimer = actionTimer - (1*dt)
 
 	--'gravidade' sendo aplicada
 	if fallTimer <= 0 then
@@ -76,7 +78,8 @@ function love.update(dt)
 		fallTimer = fallTimerMax
 	end
 
-	-- movimentação horizontal
+	-- Controles do usuário
+		-- movimentação horizontal
 	if (love.keyboard.isDown('a') or love.keyboard.isDown('left')) 
 		and actionTimer <=0 then
 
@@ -105,27 +108,26 @@ function love.update(dt)
 
 		actionTimer = actionTimerMax
 	end
+		-- fim da movimentação horizontal
 
+		-- movimentação vertical
 	if (love.keyboard.isDown('s') or love.keyboard.isDown('down'))
 		and actionTimer <=0 then
 
-		--a posição do maior bloco daquela coluna e 
-		--põe o bloco atual no topo do retornado
-
 		topo = topBlock()
 		
-		matriz[player.mY][player.mX],matriz[topo-1][player.mX] 
-			= matriz[topo-1][player.mX],matriz[player.mY][player.mX]
+		matriz[player.mY][player.mX],matriz[topo][player.mX]
+			= matriz[topo][player.mX],matriz[player.mY][player.mX]
 
-		player.mY = topo - 1 
+		player.mY = topo
 
 		actionTimer = actionTimerMax
-
-
 	end 
+		-- fim da movimentação vertical
+	-- fim dos controles do usuário
 
 
-	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupado
+	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
 	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
 	if player.mY == matriz.altura or matriz[player.mY + 1][player.mX] ~= nil then
 		player.mX = math.floor(matriz.largura/2) --meio da matriz
@@ -136,8 +138,10 @@ function love.update(dt)
 	-- Contabilizando pontos e destruindo linhas
 	for i=1, matriz.altura do
 		for j=1, matriz.largura do
-			if matriz[i][j] ~= nil then fullLine = true
-			else fullLine = false
+			if matriz[i][j] ~= nil then
+				fullLine = true
+			else 
+				fullLine = false
 			end
 
 			if not fullLine then break end
@@ -148,8 +152,8 @@ function love.update(dt)
 		if fullLine then
 			for j=1, matriz.largura do
 				matriz[i][j] = nil
-				caindo = true 
 			end 
+			caindo = true 
 		end
 	end
 
