@@ -14,7 +14,7 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}}
 --Bloco do jogador
 	--O objeto guardará a posição atual do bloco 'jogável' do player
 	--A posição se dá pelos indices do bloco na matriz
-	player = {mX = math.floor(matriz.largura/2), mY = 1, shape = nil}
+	player = {mX = math.ceil(matriz.largura/2), mY = 1, shape = nil}
 	
 --timers
 	--timer para a movimentação vertical do blocos
@@ -111,8 +111,7 @@ function love.update(dt)
 		-- fim da movimentação horizontal
 
 		-- movimentação vertical
-	if (love.keyboard.isDown('s') or love.keyboard.isDown('down'))
-		and actionTimer <=0 then
+	if love.keyboard.isDown(' ') and actionTimer <=0 then
 
 		topo = topBlock()
 		
@@ -125,15 +124,6 @@ function love.update(dt)
 	end 
 		-- fim da movimentação vertical
 	-- fim dos controles do usuário
-
-
-	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
-	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
-	if player.mY == matriz.altura or matriz[player.mY + 1][player.mX] ~= nil then
-		player.mX = math.floor(matriz.largura/2) --meio da matriz
-		player.mY = 1
-		matriz[player.mY][player.mX] = blockRandomizer()
-	end
 
 	-- Contabilizando pontos e destruindo linhas
 	for i=1, matriz.altura do
@@ -160,14 +150,19 @@ function love.update(dt)
 	if caindo then
 		for i=matriz.altura, 2, -1 do
 			for j=1, matriz.largura do
-				matriz[i][j], matriz[i-1][j] = matriz[i][j], matriz[i-1][j]
+				matriz[i][j], matriz[i-1][j] = matriz[i-1][j], matriz[i][j]
 			end
 		end 
 		caindo = false
 	end
 	-- fim da atualização de linhas
 	
-
+	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
+	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
+	if player.mY == matriz.altura or matriz[player.mY + 1][player.mX] ~= nil then
+		player.mY = 1
+		matriz[player.mY][player.mX] = blockRandomizer()
+	end
 
 
 end
