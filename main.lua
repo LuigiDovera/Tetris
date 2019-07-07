@@ -4,7 +4,7 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 
 -- Inicializando a matriz principal que armazenará a informação dos blocos
 	matriz = {largura = 7, altura = 11}
-	for i=1, matriz.altura do
+	for i=1, matriz.altura + 1 do
 		matriz[i] = {}
 		for j=1, matriz.largura do
 			matriz[i][j] = nil
@@ -23,7 +23,7 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 	
 --timers
 	--timer para a movimentação vertical do blocos
-		fallTimerMax = 1000000
+		fallTimerMax = 1	
 		fallTimer = fallTimerMax
 	--timer para restringir as ações do jogador, evitando eventuais bugs
 		actionTimerMax = 0.2
@@ -34,11 +34,31 @@ function blockRandomizer()
 	player.mX = math.ceil(matriz.largura/2)
 
 	math.randomseed(os.time())
-	n = math.random(1, 4)
+	n = 1 --math.random(1, 5)
 
-	--if n == 1 then player.shape = 'i' return blocks.img.i end
-	--if n == 2 then player.shape = 'l' return blocks.img.l end
 	if n == 1 then 
+		player.shape = 'i' 
+		player.mY = 2
+		player.orientacao = 'cima'
+
+		player.adj[1].mY, player.adj[1].mX = player.mY-1, player.mX
+		player.adj[2].mY, player.adj[2].mX = player.mY+1, player.mX
+		player.adj[3].mY, player.adj[3].mX = player.mY+2, player.mX
+
+		img = blocks.img.i
+	end
+	--[[if n == 1 then 
+		player.shape = 'l' 
+		player.mY = 2
+		player.orientacao = 'cima'
+
+		player.adj[1].mY, player.adj[1].mX = player.mY, player.mX
+		player.adj[2].mY, player.adj[2].mX = player.mY, player.mX
+		player.adj[3].mY, player.adj[3].mX = player.mY, player.mX
+
+		img = blocks.img.l
+	end]]
+	if n == 2 then 
 		player.shape = 'j' 
 		player.mY = 2
 		player.orientacao = 'cima'
@@ -49,7 +69,7 @@ function blockRandomizer()
 
 		img = blocks.img.j
 	end
-	if n == 2 then 
+	if n == 3 then 
 		player.shape = 'o'
 		player.orientacao = 'cima'
 
@@ -59,7 +79,7 @@ function blockRandomizer()
 
 		img = blocks.img.o 
 	end
-	if n == 3 then 
+	if n == 4 then 
 		player.shape = 'z'
 		player.orientacao = 'cima'
 
@@ -70,7 +90,7 @@ function blockRandomizer()
 		img = blocks.img.z
 	end
 	--if n == 6 then player.shape = 's' return blocks.img.s end
-	if n == 4 then 
+	if n == 5 then 
 		player.shape = 't'
 		player.orientacao = 'cima'
 
@@ -88,23 +108,32 @@ function blockRandomizer()
 end	
 
 
-function contarColisoes(direcao, matriz)
+function contarColisoes(direcao, m)
 	colisao = 0
 	if direcao == 'esquerda' then
-		if matriz[player.mY][player.mX - 1] ~= nil then
+		if m[player.mY][player.mX - 1] ~= nil then
 			colisao = colisao + 1
 		end
 		for i=1, 3 do
-			if matriz[player.adj[i].mY][player.adj[i].mX - 1] ~= nil then
+			if m[player.adj[i].mY][player.adj[i].mX - 1] ~= nil then
 				colisao = colisao + 1
 			end
 		end
 	elseif direcao == 'direita' then
-		if matriz[player.mY][player.mX + 1] ~= nil then
+		if m[player.mY][player.mX + 1] ~= nil then
 			colisao = colisao + 1
 		end
 		for i=1, 3 do 
-			if matriz[player.adj[i].mY][player.adj[i].mX + 1] ~= nil then
+			if m[player.adj[i].mY][player.adj[i].mX + 1] ~= nil then
+				colisao = colisao + 1
+			end
+		end
+	elseif direcao == 'cair' then
+		if m[player.mY + 1][player.mX] ~= nil then
+			colisao = colisao + 1
+		end
+		for i=1, 3 do 
+			if m[player.adj[i].mY + 1][player.adj[i].mX] ~= nil then
 				colisao = colisao + 1
 			end
 		end
@@ -114,7 +143,7 @@ end
 
 function corpoIsolado()
 	matrizTeste = {}
-	for i=1, matriz.altura do
+	for i=1, matriz.altura + 1 do
 		matrizTeste[i] = {}
 		for j=1, matriz.largura do
 			matrizTeste[i][j] = nil
@@ -130,7 +159,8 @@ function corpoIsolado()
 end
 
 function validaMovimentacao(direcao)
-	if contarColisoes(direcao, matriz) > contarColisoes(direcao,corpoIsolado()) then
+	if contarColisoes(direcao, matriz) 
+		> contarColisoes(direcao, corpoIsolado()) then
 		return false
 	else
 		return true
@@ -156,12 +186,21 @@ function cruzandoFronteiras(direcao)
 				return true
 			end
 		end
+	elseif direcao == 'cair' then
+		if player.mY >= matriz.altura then
+			return true
+		end
+		for i=1, 3 do
+			if player.adj[i].mY >= matriz.altura then
+				return true
+			end
+		end
 	end
 	return false
 end
 
 function playerMovement(direcao)
-	if direcao == 'esquerda' and not cruzandoFronteiras(direcao) then
+	if direcao == 'esquerda' and not cruzandoFronteiras(direcao) and validaMovimentacao(direcao) then
 		img = matriz[player.mY][player.mX]
 
 		matriz[player.mY][player.mX] = nil
@@ -179,7 +218,7 @@ function playerMovement(direcao)
 			matriz[player.adj[i].mY][player.adj[i].mX] = img
 		end
 
- 	elseif direcao == 'direita' and not cruzandoFronteiras(direcao) then
+ 	elseif direcao == 'direita' and not cruzandoFronteiras(direcao) and validaMovimentacao(direcao) then
  		img = matriz[player.mY][player.mX]
 
 		matriz[player.mY][player.mX] = nil
@@ -217,6 +256,23 @@ function playerMovement(direcao)
 		elseif shape == 't' then
 	
 		end
+	elseif direcao == 'cair' and not cruzandoFronteiras(direcao) and validaMovimentacao(direcao) then
+		img = matriz[player.mY][player.mX]
+
+		matriz[player.mY][player.mX] = nil
+		for i=1, 3 do
+			matriz[player.adj[i].mY][player.adj[i].mX] = nil
+		end
+
+		player.mY = player.mY + 1
+		for i=1, 3 do
+			player.adj[i].mY = player.adj[i].mY + 1 
+		end
+
+		matriz[player.mY][player.mX] = img
+		for i=1, 3 do
+			matriz[player.adj[i].mY][player.adj[i].mX] = img
+		end
 	else
 		print('direção inválida')
 	end 
@@ -226,7 +282,10 @@ function topBlock()
 	-- Percorre toda a coluna em que o jogador se encontra. 
 	-- Quando encontrar um bloco, retorna a 'altura' do bloco 
 	for i=1, matriz.altura do
-		if matriz[i][player.mX] ~= nil and i ~= player.mY then
+		if matriz[i][player.mX] ~= nil and i ~= player.mY 
+			and i ~= player.adj[1].mY
+			and i ~= player.adj[2].mY
+			and i ~= player.adj[3].mY then
 			return i - 1 
 		end
 	end
@@ -244,7 +303,11 @@ function love.load(arg)
 
 	-- Inicializando o jogador
 	blockRandomizer()
-
+	for i=8, matriz.altura do
+		for j=2, matriz.largura do
+			matriz[i][j] = blocks.img.l
+		end
+	end
 end
 
 function love.update(dt)
@@ -253,13 +316,10 @@ function love.update(dt)
 	actionTimer = actionTimer - (1*dt)
 
 	--'gravidade' sendo aplicada
-	--[[if fallTimer <= 0 then
-		matriz[player.mY + 1][player.mX] = matriz[player.mY][player.mX]
-		matriz[player.mY][player.mX] = nil
-		player.mY = player.mY + 1
-
+	if fallTimer <= 0 then
+		playerMovement('cair')
 		fallTimer = fallTimerMax
-	end]]
+	end
 
 	if not player.caindo then
 		-- Controles do usuário
@@ -290,9 +350,8 @@ function love.update(dt)
 			-- fim da movimentação vertical
 		-- fim dos controles do usuário
 	else
-		topo = topBlock()
 		fallTimerMax = 0.05
-		if player.mY == topo then
+		if not validaMovimentacao('cair') then
 			player.caindo = false
 			fallTimerMax = 1
 		end
@@ -332,9 +391,9 @@ function love.update(dt)
 	
 	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
 	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
-	--[[if player.mY == matriz.altura or matriz[player.mY + 1][player.mX] ~= nil then
+	if not validaMovimentacao('cair') or cruzandoFronteiras('cair') then
 		blockRandomizer()
-	end]]
+	end
 
 
 end
