@@ -189,53 +189,56 @@ function corpoIsolado()
 end
 
 function corpoTotalmenteIsolado()
-	matrizTeste = {}
+	--[[matrizTeste = {}
 	for i=1, 4 do
 		matrizTeste[i] = {}
-		for j=1, matriz.largura do
+		for j=1, 4 do
 			matrizTeste[i][j] = nil
 		end
-	end
+	end]]
 
-	if nextBlock == 1 then 
-		for i=1, 4 do
+	if nextBlock == 1 then
+		blocoLetra = "I" 
+		--[[for i=1, 4 do
 			matrizTeste[i][1] = blocks.img.i 
-		end
+		end]]
 	end
 	--[[if nextBlock == 1 then 
 
 		img = blocks.img.l
 	end]]
 	if nextBlock == 2 then 
-		
-		matrizTeste[2][1] = blocks.img.j
+		blocoLetra = "J"
+		--[[matrizTeste[2][1] = blocks.img.j
 		matrizTeste[2][2] = blocks.img.j
 		matrizTeste[2][3] = blocks.img.j
-		matrizTeste[1][3] = blocks.img.j 		
+		matrizTeste[1][3] = blocks.img.j]] 		
 
 	end
 	if nextBlock == 3 then 
-		matrizTeste[1][1] = blocks.img.o
+		blocoLetra = "O"
+		--[[matrizTeste[1][1] = blocks.img.o
 		matrizTeste[2][1] = blocks.img.o
 		matrizTeste[1][2] = blocks.img.o
-		matrizTeste[2][2] = blocks.img.o 
+		matrizTeste[2][2] = blocks.img.o ]]
 	end
 	if nextBlock == 4 then 
-		matrizTeste[1][1] = blocks.img.z
-		matrizTeste[2][1] = blocks.img.z
+		blocoLetra = "Z"
+		--[[matrizTeste[1][1] = blocks.img.z
+		matrizTeste[1][2] = blocks.img.z
 		matrizTeste[2][2] = blocks.img.z
-		matrizTeste[3][2] = blocks.img.z 
+		matrizTeste[3][2] = blocks.img.z ]]
 	end
 	--if nextBlock == 6 then player.shape = 's' return blocks.img.s end
 	if nextBlock == 5 then 
-		matrizTeste[1][1] = blocks.img.t
+		blocoLetra = "T"
+		--[[matrizTeste[1][1] = blocks.img.t
 		matrizTeste[2][1] = blocks.img.t
-		matrizTeste[3][1
-		] = blocks.img.t
-		matrizTeste[2][2] = blocks.img.t 
+		matrizTeste[3][1] = blocks.img.t
+		matrizTeste[2][2] = blocks.img.t]] 
 	end
 
-	return matrizTeste
+	return blocoLetra
 end
 
 function validaMovimentacao(direcao)
@@ -400,12 +403,6 @@ function love.update(dt)
 	if tela_atual == 4 then
 		if not pontuando then	
 
-			if not validaMovimentacao('cair') then
-				tela_atual = 3
-				item_atual = 1
-
-			end
-
 			-- update dos timers
 			fallTimer = fallTimer - (1*dt)
 			actionTimer = actionTimer - (1*dt)
@@ -417,12 +414,6 @@ function love.update(dt)
 			end
 
 			if not player.caindo then
-
-				if not validaMovimentacao('cair') then
-					tela_atual = 3
-					item_atual = 1
-					love.audio.stop()
-				end
 
 				-- Controles do usuário
 					-- movimentação horizontal
@@ -467,6 +458,7 @@ function love.update(dt)
 			end
 
 		else
+
 			-- Contabilizando pontos e destruindo linhas
 			linhasCompletas = {}
 			contador = 0
@@ -522,12 +514,20 @@ function love.update(dt)
 			-- fim da atualização de linhas
 			pontuando = false
 			blockCreator()
+
+			if not validaMovimentacao('cair') then
+					tela_atual = 3
+					item_atual = 1
+					love.audio.stop()
+			end
+
 		end
 		
 		-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
 		-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
 		if not validaMovimentacao('cair') or cruzandoFronteiras('cair') then
 			pontuando = true
+			spawned = true
 			
 		end
 	else
@@ -617,16 +617,18 @@ function love.draw(dt)
 		love.graphics.rectangle('fill', 400, 150, 100, 100)
 
 		love.graphics.setColor(255,255,255)
-
-		matrizNext = corpoTotalmenteIsolado()
-		bloco = love.graphics.newQuad(0, 0, 20, 20, 20, 20)
-		for i=1, #matrizNext do
+		blocoLetra = corpoTotalmenteIsolado()
+		love.graphics.setFont(fonte.small)
+		love.graphics.print(blocoLetra, 410 , 160)
+		--matrizNext = corpoTotalmenteIsolado()
+		--bloco = love.graphics.newQuad(0, 0, 20, 20, 20, 20)
+		--[[for i=1, #matrizNext do
 			for j=1, #matrizNext[i] do
 				if matrizNext[i][j] ~= nil then
 					love.graphics.draw(matrizNext[i][j], bloco, 410 + 20*(j-1), 160 + 20*(i-1))
 				end
 			end
-		end
+		end]]
 
 		love.graphics.setFont(fonte.small)
 		love.graphics.print("Pts: "..pontos, 360, 400)
