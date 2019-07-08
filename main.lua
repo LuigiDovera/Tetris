@@ -20,9 +20,14 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 	for i=1, 3 do
 		player.adj[i] = {mX = nil, mY = nil}
 	end
-	
+
+--	Elementos de gameplay
 	pontos = 0
 	pontuando = false
+
+	math.randomseed(os.time())
+	nextBlock = math.random(1, 5)
+
 --timers
 	--timer para a movimentação vertical do blocos
 		fallTimerMax = 1	
@@ -45,14 +50,17 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 --fonte
 	fonte = {large = nil, medium = nil, small = nil, tiny = nil}
 
-function blockRandomizer()
+-- musica e sons
+	music = {main = nil, menu = nil, over = nil}
+
+	sound = {movInvalido = nil, pontuou = nil}
+
+
+function blockCreator()
 	player.mY = 1
 	player.mX = math.ceil(matriz.largura/2)
 
-	math.randomseed(os.time())
-	n = math.random(1, 5)
-
-	if n == 1 then 
+	if nextBlock == 1 then 
 		player.shape = 'i' 
 		player.mY = 2
 		player.orientacao = 'cima'
@@ -63,7 +71,7 @@ function blockRandomizer()
 
 		img = blocks.img.i
 	end
-	--[[if n == 1 then 
+	--[[if nextBlock == 1 then 
 		player.shape = 'l' 
 		player.mY = 2
 		player.orientacao = 'cima'
@@ -74,7 +82,7 @@ function blockRandomizer()
 
 		img = blocks.img.l
 	end]]
-	if n == 2 then 
+	if nextBlock == 2 then 
 		player.shape = 'j' 
 		player.mY = 2
 		player.orientacao = 'cima'
@@ -85,7 +93,7 @@ function blockRandomizer()
 
 		img = blocks.img.j
 	end
-	if n == 3 then 
+	if nextBlock == 3 then 
 		player.shape = 'o'
 		player.orientacao = 'cima'
 
@@ -95,7 +103,7 @@ function blockRandomizer()
 
 		img = blocks.img.o 
 	end
-	if n == 4 then 
+	if nextBlock == 4 then 
 		player.shape = 'z'
 		player.orientacao = 'cima'
 
@@ -105,8 +113,8 @@ function blockRandomizer()
 
 		img = blocks.img.z
 	end
-	--if n == 6 then player.shape = 's' return blocks.img.s end
-	if n == 5 then 
+	--if nextBlock == 6 then player.shape = 's' return blocks.img.s end
+	if nextBlock == 5 then 
 		player.shape = 't'
 		player.orientacao = 'cima'
 
@@ -121,6 +129,12 @@ function blockRandomizer()
 	for i=1, 3 do
 			matriz[player.adj[i].mY][player.adj[i].mX] = img
 	end
+
+	math.randomseed(os.time())
+	nextBlock = math.random(1, 5)
+
+	--nextBlock = 1
+
 end	
 
 
@@ -169,6 +183,56 @@ function corpoIsolado()
 	matrizTeste[player.mY][player.mX] = matriz[player.mY][player.mX]
 	for i=1, 3 do
 		matrizTeste[player.adj[i].mY][player.adj[i].mX] = matriz[player.adj[i].mY][player.adj[i].mX]
+	end
+
+	return matrizTeste
+end
+
+function corpoTotalmenteIsolado()
+	matrizTeste = {}
+	for i=1, 4 do
+		matrizTeste[i] = {}
+		for j=1, matriz.largura do
+			matrizTeste[i][j] = nil
+		end
+	end
+
+	if nextBlock == 1 then 
+		for i=1, 4 do
+			matrizTeste[i][1] = blocks.img.i 
+		end
+	end
+	--[[if nextBlock == 1 then 
+
+		img = blocks.img.l
+	end]]
+	if nextBlock == 2 then 
+		
+		matrizTeste[2][1] = blocks.img.j
+		matrizTeste[2][2] = blocks.img.j
+		matrizTeste[2][3] = blocks.img.j
+		matrizTeste[1][3] = blocks.img.j 		
+
+	end
+	if nextBlock == 3 then 
+		matrizTeste[1][1] = blocks.img.o
+		matrizTeste[2][1] = blocks.img.o
+		matrizTeste[1][2] = blocks.img.o
+		matrizTeste[2][2] = blocks.img.o 
+	end
+	if nextBlock == 4 then 
+		matrizTeste[1][1] = blocks.img.z
+		matrizTeste[2][1] = blocks.img.z
+		matrizTeste[2][2] = blocks.img.z
+		matrizTeste[3][2] = blocks.img.z 
+	end
+	--if nextBlock == 6 then player.shape = 's' return blocks.img.s end
+	if nextBlock == 5 then 
+		matrizTeste[1][1] = blocks.img.t
+		matrizTeste[2][1] = blocks.img.t
+		matrizTeste[3][1
+		] = blocks.img.t
+		matrizTeste[2][2] = blocks.img.t 
 	end
 
 	return matrizTeste
@@ -299,22 +363,8 @@ function playerMovement(direcao)
 			matriz[player.adj[i].mY][player.adj[i].mX] = img
 		end
 	else
-		print('direção inválida')
+		love.audio.play(sound.movInvalido)
 	end 
-end
-
-function topBlock()
-	-- Percorre toda a coluna em que o jogador se encontra. 
-	-- Quando encontrar um bloco, retorna a 'altura' do bloco 
-	for i=1, matriz.altura do
-		if matriz[i][player.mX] ~= nil and i ~= player.mY 
-			and i ~= player.adj[1].mY
-			and i ~= player.adj[2].mY
-			and i ~= player.adj[3].mY then
-			return i - 1 
-		end
-	end
-	return matriz.altura
 end
 
 function love.load(arg)
@@ -328,18 +378,34 @@ function love.load(arg)
 
 	wallpaper = love.graphics.newImage("assets/img/wallpaper.png")
 
+	love.window.setIcon( love.image.newImageData("assets/img/icon.png") )
+
 	fonte.large = love.graphics.newFont("assets/font/Gamer.ttf", 200)
 	fonte.medium = love.graphics.newFont("assets/font/Gamer.ttf", 96)
 	fonte.small = love.graphics.newFont("assets/font/Gamer.ttf", 64)
 	fonte.tiny = love.graphics.newFont("assets/font/Gamer.ttf", 32)
 
+	music.main = love.audio.newSource("assets/music/main.mp3", "stream")
+	music.menu = love.audio.newSource("assets/music/menu.mp3", "stream")
+	music.over = love.audio.newSource("assets/music/over.mp3", "stream")
+
+	sound.movInvalido = love.audio.newSource("assets/sound/movInvalido.wav", "static")
+	sound.pontuou = love.audio.newSource("assets/sound/pontuou.wav", "static")
+
 	-- Inicializando o jogador
-	blockRandomizer()
+	blockCreator()
 end
 
 function love.update(dt)
 	if tela_atual == 4 then
-		if not pontuando then			
+		if not pontuando then	
+
+			if not validaMovimentacao('cair') then
+				tela_atual = 3
+				item_atual = 1
+
+			end
+
 			-- update dos timers
 			fallTimer = fallTimer - (1*dt)
 			actionTimer = actionTimer - (1*dt)
@@ -351,6 +417,13 @@ function love.update(dt)
 			end
 
 			if not player.caindo then
+
+				if not validaMovimentacao('cair') then
+					tela_atual = 3
+					item_atual = 1
+					love.audio.stop()
+				end
+
 				-- Controles do usuário
 					-- movimentação horizontal
 				if (love.keyboard.isDown('a') or love.keyboard.isDown('left')) 
@@ -381,6 +454,7 @@ function love.update(dt)
 				if love.keyboard.isDown('escape') and actionTimer <=0 then
 					tela_atual = 2
 					item_atual = 1
+					love.audio.stop()
 				end
 				-- fim da movimentação vertical
 				-- fim dos controles do usuário
@@ -430,9 +504,24 @@ function love.update(dt)
 				end
 				blocks.caindo = false
 			end	
+
+			if #linhasCompletas == 1 then
+				pontos = pontos + 100*#linhasCompletas
+				love.audio.play(sound.pontuou)
+			elseif #linhasCompletas == 2 then
+				pontos = pontos + 125*#linhasCompletas
+				love.audio.play(sound.pontuou)
+			elseif #linhasCompletas == 3 then
+				pontos = pontos + 175*#linhasCompletas
+				love.audio.play(sound.pontuou)
+			elseif #linhasCompletas == 4 then
+				pontos = pontos + 200*#linhasCompletas
+				love.audio.play(sound.pontuou)
+			end
+
 			-- fim da atualização de linhas
 			pontuando = false
-			blockRandomizer()
+			blockCreator()
 		end
 		
 		-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
@@ -460,7 +549,7 @@ function love.update(dt)
 
 		    	actionTimer = actionTimerMax
 			end
-			if love.keyboard.isDown(' ') or love.keyboard.isDown('enter') then
+			if love.keyboard.isDown(' ') or love.keyboard.isDown('return') then
 				if tela_atual == 1 then
 					if item_atual == 1 then
 						tela_atual = 4
@@ -468,6 +557,7 @@ function love.update(dt)
 					elseif item_atual == 2 then
 						love.event.quit()
 					end
+					love.audio.stop()
 				elseif tela_atual == 2 then
 					if item_atual == 1 then
 						tela_atual = 4
@@ -475,6 +565,7 @@ function love.update(dt)
 					elseif item_atual == 2 then
 						love.event.quit()
 					end
+					love.audio.stop()
 				elseif tela_atual == 3 then
 					if item_atual == 1 then
 						tela_atual = 4
@@ -486,20 +577,34 @@ function love.update(dt)
 								matriz[i][j] = nil
 							end
 						end
-						blockRandomizer() 
+						blockCreator() 
 					elseif item_atual == 2 then
 						love.event.quit()
 					end
+					love.audio.stop()
 				end
 
 				actionTimer = actionTimerMax
 			end
 		end
 	end
+	if tela_atual == 1 or tela_atual == 2 then
+		love.audio.play(music.menu)
+	elseif tela_atual == 3 then
+		love.audio.play(music.over)
+	elseif tela_atual == 4 then
+		love.audio.play(music.main)
+	end
 end
 
 function love.draw(dt)
+
 	if tela_atual == 4 then
+		love.graphics.setColor({102, 120, 89})
+		love.graphics.rectangle('fill', 0, 0, blocks.lado*matriz.largura, blocks.lado*matriz.altura)
+
+		love.graphics.setColor(255,255,255)
+
 		for i=1, matriz.altura do
 			for j=1, matriz.largura do
 				if matriz[i][j] ~= nil then
@@ -507,6 +612,25 @@ function love.draw(dt)
 				end	
 			end
 		end
+
+		love.graphics.setColor({102, 120, 89})
+		love.graphics.rectangle('fill', 400, 150, 100, 100)
+
+		love.graphics.setColor(255,255,255)
+
+		matrizNext = corpoTotalmenteIsolado()
+		bloco = love.graphics.newQuad(0, 0, 20, 20, 20, 20)
+		for i=1, #matrizNext do
+			for j=1, #matrizNext[i] do
+				if matrizNext[i][j] ~= nil then
+					love.graphics.draw(matrizNext[i][j], bloco, 410 + 20*(j-1), 160 + 20*(i-1))
+				end
+			end
+		end
+
+		love.graphics.setFont(fonte.small)
+		love.graphics.print("Pts: "..pontos, 360, 400)
+
 	elseif tela_atual == 1 then
 		love.graphics.draw(wallpaper, 0, 0)
 		love.graphics.setFont(fonte.large)
@@ -534,31 +658,56 @@ function love.draw(dt)
 	elseif tela_atual == 2 then
 
 		love.graphics.setColor({102, 120, 89})
-		love.graphics.rectangle('fill', 200, 0, 200, 550)
+		love.graphics.rectangle('fill', 200, 175, 240, 225)
 
 		love.graphics.setColor(255,255,255)
 		
 		love.graphics.setColor({11, 65, 163})
-		love.graphics.rectangle('fill', 225, 200, 150, 75)
+		love.graphics.rectangle('fill', 225, 200, 190, 75)
 		love.graphics.setColor({11, 65, 163})
-		love.graphics.rectangle('fill', 225, 300, 150, 75)
+		love.graphics.rectangle('fill', 225, 300, 190, 75)
 
 		if item_atual == 1 then
 			love.graphics.setColor({78, 245, 66})
-			love.graphics.rectangle('fill', 225, 200, 150, 75)
+			love.graphics.rectangle('fill', 225, 200, 190, 75)
 		elseif item_atual == 2 then
 			love.graphics.setColor({78, 245, 66})
-			love.graphics.rectangle('fill', 225, 300, 150, 75)
+			love.graphics.rectangle('fill', 225, 300, 190, 75)
 		end	
 
 		love.graphics.setColor(255,255,255)
 
 		love.graphics.setFont(fonte.small)
-		love.graphics.print("Resume", 250, 260)
-		love.graphics.print("Exit", 250, 360)
-	end
+		love.graphics.print("Resume", 250, 210)
+		love.graphics.print("Exit", 275, 310)
 
-	--[[for i=1, #tela[tela_atual] do
-    	love.graphics.print(tela[tela_atual][i], X, Y+ 20*i)
- 	end]]
+	elseif tela_atual == 3 then
+
+		love.graphics.setColor({102, 120, 89})
+		love.graphics.rectangle('fill', 200, 100, 240, 350)
+
+		love.graphics.setColor(255,255,255)
+
+		love.graphics.setFont(fonte.small)
+		love.graphics.print("Pts: "..pontos, 245, 100)
+
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 245, 250, 150, 75)
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 245, 350, 150, 75)
+
+		if item_atual == 1 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 245, 250, 150, 75)
+		elseif item_atual == 2 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 245, 350, 150, 75)
+		end	
+
+		love.graphics.setColor(255,255,255)
+
+		love.graphics.setFont(fonte.small)
+		love.graphics.print("Retry", 270, 260)
+		love.graphics.print("Exit", 270, 360)
+	end
 end
