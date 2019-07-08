@@ -21,6 +21,8 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 		player.adj[i] = {mX = nil, mY = nil}
 	end
 	
+	pontos = 0
+	pontuando = false
 --timers
 	--timer para a movimentação vertical do blocos
 		fallTimerMax = 1	
@@ -29,12 +31,26 @@ blocks = {img ={i=nil, l=nil, j=nil, o=nil, z=nil, s=nil, t=nil}, lado = 50, cai
 		actionTimerMax = 0.2
 		actionTimer = actionTimerMax
 
+--telas e telas
+	telas={{"Play","Exit"},
+ 		{"Retry", "Exit"},
+ 		{"Resume", "Exit"},
+ 		{}}
+
+ 	tela_atual = 1
+ 	item_atual = 1
+
+ 	wallpaper = nil
+
+--fonte
+	fonte = {large = nil, medium = nil, small = nil, tiny = nil}
+
 function blockRandomizer()
 	player.mY = 1
 	player.mX = math.ceil(matriz.largura/2)
 
 	math.randomseed(os.time())
-	n = 1 --math.random(1, 5)
+	n = math.random(1, 5)
 
 	if n == 1 then 
 		player.shape = 'i' 
@@ -159,8 +175,7 @@ function corpoIsolado()
 end
 
 function validaMovimentacao(direcao)
-	if contarColisoes(direcao, matriz) 
-		> contarColisoes(direcao, corpoIsolado()) then
+	if contarColisoes(direcao, matriz) > contarColisoes(direcao, corpoIsolado()) then
 		return false
 	else
 		return true
@@ -186,6 +201,10 @@ function cruzandoFronteiras(direcao)
 				return true
 			end
 		end
+	elseif direcao == 'baixo' then
+
+	elseif direcao == 'cima' then
+
 	elseif direcao == 'cair' then
 		if player.mY >= matriz.altura then
 			return true
@@ -238,13 +257,17 @@ function playerMovement(direcao)
 
 	elseif direcao == 'baixo' then
 		if shape == 'j' then
+			for i=1, 3 do
 
+			end
 		elseif shape == 'o' then
 
 		elseif shape == 'z' then
 	
 		elseif shape == 't' then
 	
+		elseif shape == 'i' then
+
 		end
 	elseif direcao == 'cima' then
 		if shape == 'j' then
@@ -254,6 +277,8 @@ function playerMovement(direcao)
 		elseif shape == 'z' then
 	
 		elseif shape == 't' then
+
+		elseif shape == 'i' then
 	
 		end
 	elseif direcao == 'cair' and not cruzandoFronteiras(direcao) and validaMovimentacao(direcao) then
@@ -301,109 +326,239 @@ function love.load(arg)
 	blocks.img.s = love.graphics.newImage("assets/img/s.png")
 	blocks.img.t = love.graphics.newImage("assets/img/t.png")
 
+	wallpaper = love.graphics.newImage("assets/img/wallpaper.png")
+
+	fonte.large = love.graphics.newFont("assets/font/Gamer.ttf", 200)
+	fonte.medium = love.graphics.newFont("assets/font/Gamer.ttf", 96)
+	fonte.small = love.graphics.newFont("assets/font/Gamer.ttf", 64)
+	fonte.tiny = love.graphics.newFont("assets/font/Gamer.ttf", 32)
+
 	-- Inicializando o jogador
 	blockRandomizer()
-	for i=8, matriz.altura do
-		for j=2, matriz.largura do
-			matriz[i][j] = blocks.img.l
-		end
-	end
 end
 
 function love.update(dt)
-	-- update dos timers
-	fallTimer = fallTimer - (1*dt)
-	actionTimer = actionTimer - (1*dt)
+	if tela_atual == 4 then
+		if not pontuando then			
+			-- update dos timers
+			fallTimer = fallTimer - (1*dt)
+			actionTimer = actionTimer - (1*dt)
 
-	--'gravidade' sendo aplicada
-	if fallTimer <= 0 then
-		playerMovement('cair')
-		fallTimer = fallTimerMax
-	end
+			--'gravidade' sendo aplicada
+			if fallTimer <= 0 then
+				playerMovement('cair')
+				fallTimer = fallTimerMax
+			end
 
-	if not player.caindo then
-		-- Controles do usuário
-			-- movimentação horizontal
-		if (love.keyboard.isDown('a') or love.keyboard.isDown('left')) 
-			and actionTimer <=0 then
+			if not player.caindo then
+				-- Controles do usuário
+					-- movimentação horizontal
+				if (love.keyboard.isDown('a') or love.keyboard.isDown('left')) 
+					and actionTimer <=0 then
 
-			playerMovement('esquerda')
+					playerMovement('esquerda')
+					
+					actionTimer = actionTimerMax
+				end
+
+				if (love.keyboard.isDown('d') or love.keyboard.isDown('right')) 
+					and actionTimer <=0 then
+
+					playerMovement('direita')
+
+					actionTimer = actionTimerMax
+				end
+					-- fim da movimentação horizontal
+
+					-- movimentação vertical
+				if love.keyboard.isDown(' ') and actionTimer <=0 then
+
+					player.caindo = true
+					actionTimer = actionTimerMax
+
+				end
+
+				if love.keyboard.isDown('escape') and actionTimer <=0 then
+					tela_atual = 2
+					item_atual = 1
+				end
+				-- fim da movimentação vertical
+				-- fim dos controles do usuário
+			else
+				fallTimerMax = 0.05
+				if not validaMovimentacao('cair') or cruzandoFronteiras('cair') then
+					player.caindo = false
+					fallTimerMax = 1
+				end
+			end
+
+		else
+			-- Contabilizando pontos e destruindo linhas
+			linhasCompletas = {}
+			contador = 0
+			linhasDestruidas = 0
+			for i=1, matriz.altura do
+				blocosLinha = 0
+				for j=1, matriz.largura do
+					if matriz[i][j] ~= nil then
+						blocosLinha = blocosLinha + 1
+					end
+					if blocosLinha < j then  
+						break 
+					end
+					if blocosLinha >= matriz.largura then
+						linhasDestruidas = linhasDestruidas + 1
+						linhasCompletas[linhasDestruidas] = i
+					end
+				end
+				if linhasDestruidas > contador then
+					for j=1, matriz.largura do
+						matriz[i][j] = nil
+					end 
+					contador = contador + 1
+					blocks.caindo = true 
+				end
+			end
+
+			if blocks.caindo then
+				for k=1, linhasDestruidas do
+					for i=linhasCompletas[k], 2, -1 do
+						for j=1, matriz.largura do
+							matriz[i][j], matriz[i-1][j] = matriz[i-1][j], matriz[i][j]
+						end
+					end
+				end
+				blocks.caindo = false
+			end	
+			-- fim da atualização de linhas
+			pontuando = false
+			blockRandomizer()
+		end
+		
+		-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
+		-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
+		if not validaMovimentacao('cair') or cruzandoFronteiras('cair') then
+			pontuando = true
 			
-			actionTimer = actionTimerMax
 		end
-
-		if (love.keyboard.isDown('d') or love.keyboard.isDown('right')) 
-			and actionTimer <=0 then
-
-			playerMovement('direita')
-
-			actionTimer = actionTimerMax
-		end
-			-- fim da movimentação horizontal
-
-			-- movimentação vertical
-		if love.keyboard.isDown(' ') and actionTimer <=0 then
-
-			player.caindo = true
-
-		end
-			-- fim da movimentação vertical
-		-- fim dos controles do usuário
 	else
-		fallTimerMax = 0.05
-		if not validaMovimentacao('cair') then
-			player.caindo = false
-			fallTimerMax = 1
-		end
-	end
+		actionTimer = actionTimer - (1*dt)
+		if actionTimer <=0 then
+			if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
+		    	item_atual = item_atual - 1
+		    	if item_atual<1 then
+		       		item_atual = #telas[tela_atual]
+		    	end
 
-	-- Contabilizando pontos e destruindo linhas
-	for i=1, matriz.altura do
-		for j=1, matriz.largura do
-			if matriz[i][j] ~= nil then
-				fullLine = true
-			else 
-				fullLine = false
+		    	actionTimer = actionTimerMax
 			end
+			if love.keyboard.isDown('s') or love.keyboard.isDown('down') then
+		    	item_atual = item_atual + 1
+		    	if item_atual>#telas[tela_atual] then
+		    	   item_atual = 1
+		    	end
 
-			if not fullLine then break end
-		end
-
-		-- Se a linha estiver completa, então um for externo irá realizar a ação da 'gravidade' 
-		-- nos blocos superiores
-		if fullLine then
-			for j=1, matriz.largura do
-				matriz[i][j] = nil
-			end 
-			blocks.caindo = true 
-		end
-	end
-
-	if blocks.caindo then
-		for i=matriz.altura, 2, -1 do
-			for j=1, matriz.largura do
-				matriz[i][j], matriz[i-1][j] = matriz[i-1][j], matriz[i][j]
+		    	actionTimer = actionTimerMax
 			end
-		end 
-		blocks.caindo = false
-	end
-	-- fim da atualização de linhas
-	
-	-- Se o jogador estiver no fundo da matriz ou se a posição abaixo do jogador estiver ocupada
-	-- então é gerado um novo bloco jogável e a posição do jogador é relocada para tal
-	if not validaMovimentacao('cair') or cruzandoFronteiras('cair') then
-		blockRandomizer()
-	end
+			if love.keyboard.isDown(' ') or love.keyboard.isDown('enter') then
+				if tela_atual == 1 then
+					if item_atual == 1 then
+						tela_atual = 4
+						item_atual = 1
+					elseif item_atual == 2 then
+						love.event.quit()
+					end
+				elseif tela_atual == 2 then
+					if item_atual == 1 then
+						tela_atual = 4
+						item_atual = 1
+					elseif item_atual == 2 then
+						love.event.quit()
+					end
+				elseif tela_atual == 3 then
+					if item_atual == 1 then
+						tela_atual = 4
+						item_atual = 1
 
+						pontos = 0
+						for i=1, matriz.altura do
+							for j=1, matriz.largura do
+								matriz[i][j] = nil
+							end
+						end
+						blockRandomizer() 
+					elseif item_atual == 2 then
+						love.event.quit()
+					end
+				end
 
+				actionTimer = actionTimerMax
+			end
+		end
+	end
 end
 
 function love.draw(dt)
-	for i=1, matriz.altura do
-		for j=1, matriz.largura do
-			if matriz[i][j] ~= nil then
-				love.graphics.draw(matriz[i][j], blocks.lado*(j-1), blocks.lado*(i-1))
+	if tela_atual == 4 then
+		for i=1, matriz.altura do
+			for j=1, matriz.largura do
+				if matriz[i][j] ~= nil then
+					love.graphics.draw(matriz[i][j], blocks.lado*(j-1), blocks.lado*(i-1))
+				end	
 			end
 		end
+	elseif tela_atual == 1 then
+		love.graphics.draw(wallpaper, 0, 0)
+		love.graphics.setFont(fonte.large)
+		love.graphics.print("Tetris", 100, 70)
+
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 225, 250, 150, 75)
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 225, 350, 150, 75)
+
+		if item_atual == 1 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 225, 250, 150, 75)
+		elseif item_atual == 2 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 225, 350, 150, 75)
+		end	
+
+		love.graphics.setColor(255,255,255)
+
+		love.graphics.setFont(fonte.small)
+		love.graphics.print("Play", 250, 260)
+		love.graphics.print("Exit", 250, 360)
+
+	elseif tela_atual == 2 then
+
+		love.graphics.setColor({102, 120, 89})
+		love.graphics.rectangle('fill', 200, 0, 200, 550)
+
+		love.graphics.setColor(255,255,255)
+		
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 225, 200, 150, 75)
+		love.graphics.setColor({11, 65, 163})
+		love.graphics.rectangle('fill', 225, 300, 150, 75)
+
+		if item_atual == 1 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 225, 200, 150, 75)
+		elseif item_atual == 2 then
+			love.graphics.setColor({78, 245, 66})
+			love.graphics.rectangle('fill', 225, 300, 150, 75)
+		end	
+
+		love.graphics.setColor(255,255,255)
+
+		love.graphics.setFont(fonte.small)
+		love.graphics.print("Resume", 250, 260)
+		love.graphics.print("Exit", 250, 360)
 	end
+
+	--[[for i=1, #tela[tela_atual] do
+    	love.graphics.print(tela[tela_atual][i], X, Y+ 20*i)
+ 	end]]
 end
